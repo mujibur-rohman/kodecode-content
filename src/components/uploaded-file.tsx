@@ -15,14 +15,16 @@ function UploadedFile({
   const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [isCanceled, setIsCanceled] = useState(false);
+  const [isErrorUpload, setIsErrorUpload] = useState(false);
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
-  console.log({ progress });
   const startUpload = async () => {
     try {
       if (isUploading) return;
       setIsUploading(true);
       setIsCanceled(false);
+      setIsErrorUpload(false);
+      setProgress(0);
 
       cancelTokenRef.current = axios.CancelToken.source();
       await axios.postForm(
@@ -47,7 +49,9 @@ function UploadedFile({
 
       setProgress(100);
     } catch (error) {
-      console.log(error);
+      setIsUploading(false);
+      setIsErrorUpload(true);
+      console.error(error);
     }
   };
 
@@ -72,11 +76,13 @@ function UploadedFile({
       <div className="flex justify-between">
         {isCanceled ? (
           <p className="text-xs text-red-500">Canceled!</p>
-        ) : (
+        ) : isErrorUpload ? (
+          <p className="text-xs text-red-500">Upload failed!</p>
+        ) : isUploading ? (
           <p className="text-xs text-gray-400">{progress}% Completed</p>
-        )}
+        ) : null}
         <div className="flex items-center gap-2">
-          {isCanceled && (
+          {(isCanceled || isErrorUpload) && (
             <>
               <RefreshCwIcon
                 className="w-4 h-4 text-blue-500 cursor-pointer"

@@ -49,9 +49,10 @@ function UploadedFile({
 
       setProgress(100);
     } catch (error) {
-      setIsUploading(false);
       setIsErrorUpload(true);
       console.error(error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -80,7 +81,9 @@ function UploadedFile({
           <p className="text-xs text-red-500">Upload failed!</p>
         ) : isUploading ? (
           <p className="text-xs text-gray-400">{progress}% Completed</p>
-        ) : null}
+        ) : (
+          progress === 100 && <p className="text-xs text-green-400">Uploaded</p>
+        )}
         <div className="flex items-center gap-2">
           {(isCanceled || isErrorUpload) && (
             <>
@@ -88,11 +91,13 @@ function UploadedFile({
                 className="w-4 h-4 text-blue-500 cursor-pointer"
                 onClick={startUpload}
               />
-              <TrashIcon
-                className="w-4 h-4 text-red-500 cursor-pointer"
-                onClick={onDelete}
-              />
             </>
+          )}
+          {!isUploading && progress === 100 && (
+            <TrashIcon
+              className="w-4 h-4 text-red-500 cursor-pointer"
+              onClick={onDelete}
+            />
           )}
 
           {isUploading && (

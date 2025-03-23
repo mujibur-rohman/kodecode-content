@@ -91,6 +91,10 @@ function UploadedFile({
                 className="w-4 h-4 text-blue-500 cursor-pointer"
                 onClick={startUpload}
               />
+              <TrashIcon
+                className="w-4 h-4 text-red-500 cursor-pointer"
+                onClick={onDelete}
+              />
             </>
           )}
           {!isUploading && progress === 100 && (

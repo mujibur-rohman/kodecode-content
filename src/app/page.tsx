@@ -1,23 +1,56 @@
 "use client";
-
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [imageData, setImageData] = useState("");
+
+  const generateImage = async () => {
+    try {
+      if (pdfRef?.current) {
+        // Clone Element
+        const clonedElement = pdfRef.current.cloneNode(true) as HTMLDivElement;
+        clonedElement.style.display = "flex";
+
+        // Set width nya dengan ukuran A4
+        clonedElement.style.width = "1240px";
+
+        // Buat element yang di kloning agar tidak terlihat di user interface
+        clonedElement.style.position = "absolute";
+        clonedElement.style.left = "-999999px";
+
+        // Masukkan element ke body
+        document.body.appendChild(clonedElement);
+
+        // Buat image canvas
+        const canvas = await html2canvas(clonedElement, { scale: 2 });
+        const imageData = canvas.toDataURL("image/png");
+
+        // Remove element dari body
+        document.body.removeChild(clonedElement);
+        setImageData(imageData);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const generatePDF = async () => {
-    const element = document.getElementById("pdf-content");
-    if (!element) return;
-
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imageData = canvas.toDataURL("image/png");
-
+    // Inisiasi PDF
     const pdf = new jsPDF("portrait", "mm", "a4");
     const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
+    const imgHeight = 297;
+    // Masukkan gambar ke dalam PDF
     pdf.addImage(imageData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save("document.pdf");
+    // Download
+    pdf.save("cv.pdf");
   };
+
+  useEffect(() => {
+    generateImage();
+  }, [pdfRef]);
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
@@ -28,9 +61,20 @@ export default function Home() {
         Download CV
       </button>
 
+      {!imageData ? (
+        <p>No Preview</p>
+      ) : (
+        <Image
+          src={imageData}
+          width={500}
+          height={300}
+          alt="curriculum-vitae"
+        />
+      )}
+
       <div
-        id="pdf-content"
-        className="p-6 border bg-white shadow-lg rounded-lg w-full max-w-[800px] aspect-[21/29.7] flex flex-col"
+        ref={pdfRef}
+        className="p-6 border bg-white shadow-lg rounded-lg w-full max-w-[800px] aspect-[21/29.7] hidden flex-col"
       >
         <div className="flex items-center gap-4 border-b pb-4">
           <div>
@@ -39,7 +83,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-2 gap-6 mt-6">
           <div>
             <h2 className="text-xl font-semibold border-b pb-2">
               Personal Info
